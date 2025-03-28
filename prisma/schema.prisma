@@ -18,19 +18,29 @@ model User {
   email     String    @unique
   password  String
   name      String?
+  omiUserId String    @unique
   expenses  Expense[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
+enum ExpenseCategory {
+  Bills
+  Entertainment
+  Transportation
+  Shopping
+  Healthcare
+  Education
+  Investments
+  Other
+}
+
 model Expense {
-  id          String   @id @default(cuid())
-  amount      Float
-  description String
-  category    String
-  date        DateTime
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String         @id @default(cuid())
+  amount    Float
+  category  ExpenseCategory
+  userId    String
+  user      User           @relation(fields: [userId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 }

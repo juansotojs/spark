@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     const currentMonthExpenses = await prisma.expense.findMany({
       where: {
         userId: user.id,
-        date: {
+        createdAt: {
           gte: firstDayOfMonth,
           lte: lastDayOfMonth,
         },
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     const lastMonthExpenses = await prisma.expense.findMany({
       where: {
         userId: user.id,
-        date: {
+        createdAt: {
           gte: firstDayOfLastMonth,
           lte: lastDayOfLastMonth,
         },

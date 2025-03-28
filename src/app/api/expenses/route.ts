@@ -16,14 +16,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const { amount, description, category, date } = await req.json();
+    const { amount, category } = await req.json();
 
     const expense = await prisma.expense.create({
       data: {
         amount: parseFloat(amount),
-        description,
         category,
-        date: new Date(date),
         userId: session.user.id,
       },
     });
@@ -54,7 +52,7 @@ export async function GET(req: Request) {
         userId: session.user.id,
       },
       orderBy: {
-        date: 'desc',
+        createdAt: 'desc',
       },
     });
 

@@ -6,12 +6,12 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, omiUserId } = await req.json();
 
     // Validate input
-    if (!email || !password) {
+    if (!email || !password || !omiUserId) {
       return NextResponse.json(
-        { message: 'Email and password are required' },
+        { message: 'Email, password, and Omi User ID are required' },
         { status: 400 }
       );
     }
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         name,
         email,
         password: hashedPassword,
+        omiUserId,
       },
     });
 

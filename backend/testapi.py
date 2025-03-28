@@ -5,6 +5,7 @@ from transformers import pipeline
 import re
 from num2words import num2words
 from word2number import w2n
+import httpx
 
 app = FastAPI()
 # Add CORS middleware
@@ -21,7 +22,7 @@ ner_pipeline = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-e
 
 # Define expense categories and their keywords
 EXPENSE_CATEGORIES = {
-    "Bills": ["rent", "mortgage", "utilities", "electricity", "water", "gas", "insurance", "phone", "internet"   ],
+    "Bills": ["rent", "mortgage", "utilities", "electricity", "water", "gas", "insurance", "phone", "internet"],
     "Entertainment": ["games", "movies", "restaurant", "food", "dining", "netflix", "spotify", "subscription"],
     "Transportation": ["gas", "fuel", "uber", "lyft", "transit", "bus", "train", "airline", "flight"],
     "Shopping": ["clothes", "shopping", "amazon", "walmart", "target", "store"],
@@ -94,7 +95,7 @@ def categorize_expense(text):
     return "Other"
 
 @app.post('/webhook')
-def webhook(memory: dict, uid: str):
+async def webhook(memory: dict, uid: str):
     try:
         # Extract text from the transcript
         text_value = memory.get('transcript_segments', [])[0].get('text', '')
@@ -108,11 +109,26 @@ def webhook(memory: dict, uid: str):
         category = categorize_expense(text_value)
         print(f"Categorized as: {category}")
         
+        # Forward to frontend webhook
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "http://localhost:3000/api/webhook",
+                json={
+                    "amount": amount,
+                    "category": category,
+                    "user_id": uid
+                }
+            )
+            
+            if response.status_code != 200:
+                print(f"Error forwarding to frontend: {response.text}")
+        
         return {
             "message": "Successfully processed expense",
             "extracted_text": text_value,
             "amount": amount,
-            "category": category
+            "category": category,
+            "user_id": uid
         }
     except (IndexError, KeyError) as e:
         print(f"Error processing data: {str(e)}")

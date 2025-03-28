@@ -27,6 +27,7 @@ export default function SignUp() {
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const omiUserId = formData.get('omiUserId') as string;
 
     try {
       const response = await fetch('/api/auth/signup', {
@@ -38,6 +39,7 @@ export default function SignUp() {
           name,
           email,
           password,
+          omiUserId,
         }),
       });
 
@@ -98,6 +100,15 @@ export default function SignUp() {
               type="password"
               id="password"
               autoComplete="new-password"
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="omiUserId"
+              label="Omi User ID"
+              id="omiUserId"
+              helperText="Enter your Omi User ID to connect your financial data"
             />
             <Button
               type="submit"
