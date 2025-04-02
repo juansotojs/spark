@@ -1,141 +1,214 @@
-import React, { useEffect, useState } from 'react';
-import { Paper, Typography, Grid, Box, LinearProgress, CircularProgress } from '@mui/material';
+'use client';
+
+import React from 'react';
+import {
+  Box,
+  Paper,
+  Typography,
+  Grid,
+  CircularProgress,
+  useTheme,
+} from '@mui/material';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 
 interface ExpenseSummary {
   totalSpent: number;
   categoryBreakdown: Record<string, number>;
   monthlyChange: number;
-  topCategories: string[];
+  topCategories: Array<{ category: string; amount: number }>;
 }
 
-export default function MonthlyDashboard() {
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [summary, setSummary] = useState<ExpenseSummary>({
-    totalSpent: 0,
-    categoryBreakdown: {},
-    monthlyChange: 0,
-    topCategories: []
-  });
+interface MonthlyDashboardProps {
+  summary: ExpenseSummary | null;
+  loading: boolean;
+}
 
-  useEffect(() => {
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
+export function MonthlyDashboard({ summary, loading }: MonthlyDashboardProps) {
+  const theme = useTheme();
 
-    const fetchSummary = async () => {
-      try {
-        const response = await fetch('/api/expenses/summary');
-        if (!response.ok) {
-          throw new Error('Failed to fetch expense summary');
-        }
-        const data = await response.json();
-        setSummary(data);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSummary();
-  }, [session, router]);
-
-  const getProgressColor = (index: number) => {
-    const colors = ['primary.main', 'secondary.main', '#4caf50', '#ff5722', '#9c27b0'];
-    return colors[index % colors.length];
-  };
+  // Sample insights - in a real app, these would come from your AI service
+  const insights: string[] = [
+    "Your spending on dining out has increased by 25% this month. Consider setting a budget to maintain your financial goals.",
+    "You're saving more on utilities compared to last month. Great job on being energy-efficient!",
+    "Your entertainment expenses are below average. This could be a good time to invest in your hobbies or personal development.",
+  ];
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
         <CircularProgress />
       </Box>
     );
   }
 
-  if (error) {
+  if (!summary) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography color="error">{error}</Typography>
-      </Box>
+      <Paper sx={{ p: 3, textAlign: 'center' }}>
+        <Typography>No data available</Typography>
+      </Paper>
     );
   }
 
+  // Transform category breakdown into bar chart data
+  const barData = Object.entries(summary.categoryBreakdown || {})
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: (amount / summary.totalSpent) * 100
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 3);
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Monthly Overview
-      </Typography>
-      
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, height: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h5" sx={{ flexGrow: 1 }}>
-                Total Spent
-              </Typography>
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  color: summary.monthlyChange < 0 ? 'success.main' : 'error.main' 
-                }}
-              >
-                {summary.monthlyChange < 0 ? <TrendingDownIcon /> : <TrendingUpIcon />}
-                <Typography variant="body2" sx={{ ml: 0.5 }}>
-                  {Math.abs(summary.monthlyChange).toFixed(1)}%
-                </Typography>
-              </Box>
-            </Box>
-            <Typography variant="h3" sx={{ mb: 1, color: 'primary.main' }}>
-              ${summary.totalSpent.toLocaleString()}
+        <Grid item xs={12} md={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
+              Total Spent
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              vs. last month
+            <Typography variant="h4" sx={{ color: 'primary.main', fontWeight: 600 }}>
+              ${summary.totalSpent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Typography>
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0} sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h5" gutterBottom>
-              Spending Breakdown
+        <Grid item xs={12} md={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
+              Monthly Change
             </Typography>
-            <Box sx={{ mt: 2 }}>
-              {summary.topCategories.map((category, index) => (
-                <Box key={category} sx={{ mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {summary.monthlyChange >= 0 ? (
+                <TrendingUpIcon sx={{ color: 'success.main' }} />
+              ) : (
+                <TrendingDownIcon sx={{ color: 'error.main' }} />
+              )}
+              <Typography
+                variant="h4"
+                sx={{
+                  color: summary.monthlyChange >= 0 ? 'success.main' : 'error.main',
+                  fontWeight: 600,
+                }}
+              >
+                {Math.abs(summary.monthlyChange)}%
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" sx={{ color: 'text.secondary', mb: 2 }}>
+              Top Categories
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {barData.map((item, index) => (
+                <Box key={item.category}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="body2">{category}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      ${summary.categoryBreakdown[category].toLocaleString()}
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {item.category}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      ${item.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={(summary.categoryBreakdown[category] / summary.totalSpent) * 100}
-                    sx={{ 
-                      height: 8, 
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 8,
+                      bgcolor: 'rgba(255, 255, 255, 0.1)',
                       borderRadius: 4,
-                      backgroundColor: 'grey.100',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: getProgressColor(index),
-                      }
+                      overflow: 'hidden',
                     }}
-                  />
+                  >
+                    <Box
+                      sx={{
+                        width: `${item.percentage}%`,
+                        height: '100%',
+                        bgcolor: theme.palette.primary.main,
+                        borderRadius: 4,
+                        transition: 'width 0.5s ease-in-out',
+                      }}
+                    />
+                  </Box>
                 </Box>
               ))}
             </Box>
           </Paper>
         </Grid>
       </Grid>
+
+      {/* AI Advisor Marketing Section */}
+      <Box sx={{ 
+        mt: 4, 
+        p: 3, 
+        background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%)',
+        borderRadius: 2,
+        border: '1px solid rgba(255, 215, 0, 0.2)',
+        backdropFilter: 'blur(10px)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 1,
+          color: 'primary.main',
+          fontSize: '2rem',
+        }}>
+          ⚡
+        </Box>
+        <Box>
+          <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600, mb: 0.5 }}>
+            Chat with Spark
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Your very own AI-powered financial advisor, available on the Omi app today!
+          </Typography>
+        </Box>
+      </Box>
     </Box>
   );
 } 

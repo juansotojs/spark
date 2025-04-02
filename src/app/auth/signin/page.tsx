@@ -31,7 +31,7 @@ export default function SignIn() {
     try {
       const result = await signIn('credentials', {
         redirect: false,
-        email,
+        email: email.toLowerCase(),
         password,
       });
 
@@ -50,8 +50,23 @@ export default function SignIn() {
   return (
     <Container maxWidth="sm">
       <Box sx={{ mt: 8, mb: 4 }}>
-        <Paper elevation={0} sx={{ p: 4, borderRadius: 2 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center">
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            p: 4, 
+            borderRadius: 2,
+            background: 'rgba(18, 18, 18, 0.8)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 215, 0, 0.1)',
+          }}
+        >
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom 
+            align="center"
+            sx={{ color: '#FFD700' }}
+          >
             Sign In
           </Typography>
           
@@ -71,6 +86,32 @@ export default function SignIn() {
               name="email"
               autoComplete="email"
               autoFocus
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 215, 0, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 215, 0, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#FFD700',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#FFD700',
+                  },
+                  color: '#FFFFFF',
+                  '& input': {
+                    color: '#FFFFFF',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#FFD700',
+                  },
+                },
+              }}
             />
             <TextField
               margin="normal"
@@ -81,12 +122,46 @@ export default function SignIn() {
               type="password"
               id="password"
               autoComplete="current-password"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 215, 0, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 215, 0, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#FFD700',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#FFD700',
+                  },
+                  color: '#FFFFFF',
+                  '& input': {
+                    color: '#FFFFFF',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#FFD700',
+                  },
+                },
+              }}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ 
+                mt: 3, 
+                mb: 2,
+                background: '#FFD700',
+                color: '#000000',
+                '&:hover': {
+                  background: '#FFE44D',
+                },
+              }}
               disabled={loading}
             >
               {loading ? 'Signing in...' : 'Sign In'}
@@ -94,7 +169,16 @@ export default function SignIn() {
           </form>
 
           <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Link href="/auth/signup" variant="body2">
+            <Link 
+              href="/auth/signup" 
+              variant="body2"
+              sx={{ 
+                color: '#FFD700',
+                '&:hover': {
+                  color: '#FFE44D',
+                },
+              }}
+            >
               {"Don't have an account? Sign Up"}
             </Link>
           </Box>

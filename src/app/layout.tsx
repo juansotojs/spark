@@ -1,72 +1,16 @@
-'use client';
-
-import { AppBar, Box, CssBaseline, ThemeProvider, Toolbar, Typography, Button, Menu, MenuItem } from '@mui/material';
+import { Box } from '@mui/material';
 import { Inter } from 'next/font/google';
-import { useSession, signOut } from 'next-auth/react';
-import { useState } from 'react';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import theme from './theme';
 import { Providers } from './providers';
+import { Header } from './components/Header';
+import type { Metadata } from 'next';
+import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
-function Header() {
-  const { data: session } = useSession();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSignOut = () => {
-    signOut({ callbackUrl: '/auth/signin' });
-    handleClose();
-  };
-
-  return (
-    <AppBar position="static" elevation={0} sx={{ backgroundColor: 'white', borderBottom: '1px solid #e0e0e0' }}>
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'primary.main', fontWeight: 600 }}>
-          FinFriend
-        </Typography>
-        {session ? (
-          <div>
-            <Button
-              onClick={handleMenu}
-              startIcon={<AccountCircleIcon />}
-              sx={{ color: 'text.primary' }}
-            >
-              {session.user?.name || session.user?.email}
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
-              }}
-            >
-              <MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
-            </Menu>
-          </div>
-        ) : (
-          <Button color="primary" href="/auth/signin">
-            Sign In
-          </Button>
-        )}
-      </Toolbar>
-    </AppBar>
-  );
-}
+export const metadata: Metadata = {
+  title: 'Spark - Expense Tracker',
+  description: 'Track your expenses with voice input',
+};
 
 export default function RootLayout({
   children,
@@ -75,17 +19,38 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className} style={{ margin: 0, backgroundColor: '#f5f5f5' }}>
+      <body className={inter.className}>
         <Providers>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-              <Header />
-              <Box component="main" sx={{ flexGrow: 1, py: 4 }}>
-                {children}
+          <div style={{
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #121212 0%, #1a1a1a 100%)',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            {/* Luxury background pattern */}
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 50%)',
+              pointerEvents: 'none',
+            }} />
+            
+            {/* Main content */}
+            <div style={{
+              position: 'relative',
+              zIndex: 1,
+            }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                <Header />
+                <Box component="main" sx={{ flexGrow: 1, py: 4 }}>
+                  {children}
+                </Box>
               </Box>
-            </Box>
-          </ThemeProvider>
+            </div>
+          </div>
         </Providers>
       </body>
     </html>

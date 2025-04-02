@@ -1,43 +1,12 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-const prismaClient = new PrismaClient();
-
-export async function POST(req: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const { amount, category } = await req.json();
-
-    const expense = await prismaClient.expense.create({
-      data: {
-        amount: parseFloat(amount),
-        category,
-        omiUserId: session.user.omiUserId,
-      },
-    });
-
-    return NextResponse.json(expense);
-  } catch (error) {
-    console.error('Create expense error:', error);
-    return NextResponse.json(
-      { message: 'Something went wrong' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(req: Request) {
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     const user = session?.user as { omiUserId: string } | undefined;
@@ -49,18 +18,54 @@ export async function GET(req: Request) {
       );
     }
 
-    const expenses = await prisma.expense.findMany({
+    const { amount, category } = await req.json();
+
+    const expense = await prisma.expense.update({
       where: {
+        id: params.id,
         omiUserId: user.omiUserId,
       },
-      orderBy: {
-        createdAt: 'desc',
+      data: {
+        amount: parseFloat(amount),
+        category,
       },
     });
 
-    return NextResponse.json(expenses);
+    return NextResponse.json(expense);
   } catch (error) {
-    console.error('Get expenses error:', error);
+    console.error('Update expense error:', error);
+    return NextResponse.json(
+      { message: 'Something went wrong' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    const user = session?.user as { omiUserId: string } | undefined;
+
+    if (!user?.omiUserId) {
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    await prisma.expense.delete({
+      where: {
+        id: params.id,
+        omiUserId: user.omiUserId,
+      },
+    });
+
+    return NextResponse.json({ message: 'Expense deleted successfully' });
+  } catch (error) {
+    console.error('Delete expense error:', error);
     return NextResponse.json(
       { message: 'Something went wrong' },
       { status: 500 }

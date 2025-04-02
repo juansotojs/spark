@@ -49,26 +49,26 @@ export default function CryptoWallet() {
       <Typography variant="h6" gutterBottom>
         Crypto Wallet
       </Typography>
-      
       {!isConnected ? (
         <Button
           variant="contained"
-          onClick={connectWallet}
           startIcon={<AccountBalanceWalletIcon />}
+          onClick={connectWallet}
+          fullWidth
         >
           Connect Wallet
         </Button>
       ) : (
         <Box>
           <Typography variant="subtitle1" gutterBottom>
-            Connected Wallet Balances
+            Your Balances
           </Typography>
           <List>
             {balances.map((balance) => (
               <ListItem key={balance.currency}>
                 <ListItemText
                   primary={`${balance.currency}: ${balance.balance}`}
-                  secondary={`≈ $${balance.usdValue.toFixed(2)}`}
+                  secondary={`USD Value: $${balance.usdValue.toFixed(2)}`}
                 />
               </ListItem>
             ))}

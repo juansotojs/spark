@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  Button, 
-  TextField, 
-  Paper, 
-  Box, 
+import {
+  Button,
+  TextField,
+  Paper,
+  Box,
   Typography,
   MenuItem,
   InputAdornment,
@@ -26,15 +26,14 @@ interface Expense {
 }
 
 const categories = [
-  'Food & Dining',
+  'Bills',
+  'Entertainment',
   'Transportation',
   'Shopping',
-  'Entertainment',
-  'Utilities',
   'Healthcare',
-  'Travel',
   'Education',
-  'Others'
+  'Investments',
+  'Other'
 ];
 
 export default function ExpenseLogger() {
@@ -43,16 +42,15 @@ export default function ExpenseLogger() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [expense, setExpense] = useState<Expense>({
-    amount: 0,
-    description: '',
+  const [formData, setFormData] = useState({
+    amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!session) {
       router.push('/auth/signin');
       return;
@@ -67,22 +65,29 @@ export default function ExpenseLogger() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(expense),
+        body: JSON.stringify({
+          amount: parseFloat(formData.amount),
+          category: formData.category,
+          date: formData.date,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save expense');
+        throw new Error('Failed to add expense');
       }
 
-      setSuccess(true);
-      setExpense({
-        amount: 0,
-        description: '',
+      // Reset form
+      setFormData({
+        amount: '',
         category: '',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
       });
+
+      // Show success message
+      setSuccess(true);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      console.error('Error adding expense:', error);
+      setError('Failed to add expense. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -93,7 +98,7 @@ export default function ExpenseLogger() {
       <Typography variant="h4" gutterBottom>
         Log New Expense
       </Typography>
-      
+
       <Paper elevation={0} sx={{ p: 3 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 3 }}>
@@ -107,8 +112,8 @@ export default function ExpenseLogger() {
               <TextField
                 label="Amount"
                 type="number"
-                value={expense.amount}
-                onChange={(e) => setExpense({ ...expense, amount: parseFloat(e.target.value) })}
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 required
                 fullWidth
                 InputProps={{
@@ -120,13 +125,13 @@ export default function ExpenseLogger() {
                 }}
               />
             </Grid>
-            
+
             <Grid item xs={12} md={6}>
               <TextField
                 select
                 label="Category"
-                value={expense.category}
-                onChange={(e) => setExpense({ ...expense, category: e.target.value })}
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 required
                 fullWidth
                 InputProps={{
@@ -144,32 +149,13 @@ export default function ExpenseLogger() {
                 ))}
               </TextField>
             </Grid>
-            
+
             <Grid item xs={12}>
-              <TextField
-                label="Description"
-                value={expense.description}
-                onChange={(e) => setExpense({ ...expense, description: e.target.value })}
-                required
-                fullWidth
-                multiline
-                rows={2}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <DescriptionIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
               <TextField
                 label="Date"
                 type="date"
-                value={expense.date}
-                onChange={(e) => setExpense({ ...expense, date: e.target.value })}
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 required
                 fullWidth
                 InputLabelProps={{ shrink: true }}
@@ -182,10 +168,10 @@ export default function ExpenseLogger() {
                 }}
               />
             </Grid>
-            
+
             <Grid item xs={12}>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 type="submit"
                 size="large"
                 fullWidth

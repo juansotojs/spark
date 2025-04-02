@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { amount, category, user_id } = await req.json();
 
     // Validate input
@@ -15,15 +24,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Find user by omiUserId
-    const user = await prisma.user.findUnique({
-      where: { omiUserId: user_id },
-    });
-
-    if (!user) {
+    // Verify user_id matches session
+    if (user_id !== session.user.omiUserId) {
       return NextResponse.json(
-        { message: 'User not found' },
-        { status: 404 }
+        { message: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
@@ -32,7 +37,7 @@ export async function POST(req: Request) {
       data: {
         amount,
         category: category as any, // Type assertion needed due to enum
-        userId: user.id,
+        omiUserId: session.user.omiUserId,
       },
     });
 
@@ -40,7 +45,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Webhook error:', error);
     return NextResponse.json(
-      { message: 'Something went wrong' },
+      { message: 'Internal server error' },
       { status: 500 }
     );
   }

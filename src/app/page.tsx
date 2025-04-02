@@ -1,15 +1,16 @@
 'use client';
 
-import React from 'react';
-import { Container, Box, Tab, Tabs, Paper } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Box, Tab, Tabs, Paper, Typography } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import ExpenseLogger from './components/ExpenseLogger';
 import AiFeedback from './components/AiFeedback';
-import MonthlyDashboard from './components/MonthlyDashboard';
+import { MonthlyDashboard } from './components/MonthlyDashboard';
 import VoiceInput from './components/VoiceInput';
 import CryptoWallet from './components/CryptoWallet';
+import { ExpenseLogs } from './components/ExpenseLogs';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -38,7 +39,26 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = React.useState(0);
+  const [activeTab, setActiveTab] = useState(0);
+  const [expenseSummary, setExpenseSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const response = await fetch('/api/expenses/summary');
+        if (!response.ok) throw new Error('Failed to fetch summary');
+        const data = await response.json();
+        setExpenseSummary(data);
+      } catch (error) {
+        console.error('Error fetching summary:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSummary();
+  }, []);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -46,13 +66,14 @@ export default function Home() {
 
   return (
     <Container maxWidth="lg">
-      <Paper 
-        elevation={0} 
-        sx={{ 
+      <Paper
+        elevation={0}
+        sx={{
           borderRadius: 2,
           overflow: 'hidden',
           backgroundColor: 'background.paper',
-          mb: 4
+          mb: 4,
+          p: 3,
         }}
       >
         <Tabs
@@ -67,26 +88,28 @@ export default function Home() {
             },
           }}
         >
-          <Tab 
-            icon={<DashboardIcon />} 
-            label="Dashboard" 
+          <Tab
+            icon={<DashboardIcon />}
+            label="Dashboard"
             iconPosition="start"
           />
-          <Tab 
-            icon={<AddCircleOutlineIcon />} 
-            label="Log Expense" 
+          <Tab
+            icon={<AddCircleOutlineIcon />}
+            label="Log Expense"
             iconPosition="start"
           />
-          <Tab 
-            icon={<AccountBalanceWalletIcon />} 
-            label="Crypto" 
+          <Tab
+            icon={<AccountBalanceWalletIcon />}
+            label="Crypto"
             iconPosition="start"
           />
         </Tabs>
 
         <TabPanel value={activeTab} index={0}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <MonthlyDashboard />
+            <Box sx={{ mb: 4 }}>
+              <MonthlyDashboard summary={expenseSummary} loading={loading} />
+            </Box>
             <AiFeedback expense={{
               amount: 0,
               description: '',
@@ -99,12 +122,44 @@ export default function Home() {
         <TabPanel value={activeTab} index={1}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <ExpenseLogger />
-            <VoiceInput />
+            <Box sx={{ mt: 4 }}>
+              <ExpenseLogs />
+            </Box>
           </Box>
         </TabPanel>
 
         <TabPanel value={activeTab} index={2}>
-          <CryptoWallet />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ 
+              p: 3, 
+              background: 'linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 215, 0, 0.05) 100%)',
+              borderRadius: 2,
+              border: '1px solid rgba(255, 215, 0, 0.2)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+            }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                color: 'primary.main',
+                fontSize: '2rem',
+              }}>
+                ⚡
+              </Box>
+              <Box>
+                <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 600, mb: 0.5 }}>
+                  Coming Soon
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  Wallet integration and portfolio tracking coming to Spark soon!
+                </Typography>
+              </Box>
+            </Box>
+            <CryptoWallet />
+          </Box>
         </TabPanel>
       </Paper>
     </Container>

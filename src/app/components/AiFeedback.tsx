@@ -14,10 +14,10 @@ export default function AiFeedback({ expense }: AiFeedbackProps) {
   // This is a placeholder for the actual AI feedback logic
   const generateFeedback = () => {
     return {
-      suggestion: `Based on your ${expense.category} expense of $${expense.amount}, 
-        consider setting a monthly budget for this category.`,
-      insight: 'This is higher than your usual spending in this category.',
-      recommendation: 'Try to reduce similar expenses by 15% next month.'
+      suggestion: `Based on your ${expense.category} expense of $${expense.amount} in this category, 
+        consider setting a monthly budget for investing.`,
+      insight: 'Consider investing in smaller cap tokens such as HBAR or XRP.',
+      recommendation: 'Investments can bring income up to 100% in a month.'
     };
   };
 

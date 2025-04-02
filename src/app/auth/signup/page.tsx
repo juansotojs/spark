@@ -36,17 +36,16 @@ export default function SignUp() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name,
-          email,
+          email: email.toLowerCase(),
           password,
+          name,
           omiUserId,
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || 'Something went wrong');
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to sign up');
       }
 
       router.push('/auth/signin');
